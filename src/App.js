@@ -8,15 +8,28 @@ const api = {
 function App() {
   const [query, setQuery] = useState('');
   const [weather, setWeather] = useState({});
+  const [error, setError] = useState('');
 
   const search = evt => {
     if (evt.key === "Enter") {
       fetch(`${api.base}weather?q=${query}&units=metric&APPID=${api.key}`)
         .then(res => res.json())
         .then(result => {
-          setWeather(result);
-          setQuery('');
-          console.log('search', result);
+          if (result.cod === '404') {
+            setError('Place not found 😔');
+            setQuery('')
+            setWeather({})
+          } else {
+            setWeather(result);
+            setQuery('');
+            console.log('search', result);
+            setError('');
+          }
+        })
+        .catch((error) => {
+          if (error.cod === '404') {
+            setError('Place not found 😔');
+          }
         })
     }
   }
@@ -46,7 +59,7 @@ function App() {
             onKeyPress={search}
           />
         </div>
-        {(typeof weather.main != "undefined") ? (
+        {(typeof weather.main !== "undefined") ? (
           <div>
             <div className="location-box">
               <div className="location">{weather.name}, {weather.sys.country}</div>
@@ -61,6 +74,8 @@ function App() {
               </div>
             </div>
           </div>
+      ) : (error !== '') ? (
+        <div className="weather-error">{error}</div>
       ) : ('')}
       </main>
     </div>
